@@ -2,10 +2,10 @@
 Data Scientist - AI Acceleration (AIA) Technical Assessment
 
 Repository Structure
-├── Part1_Structured_Data_ML_Challenge/  
-│   ├── retail_sales_analysis.ipynb       # Jupyter notebook with EDA, modeling, and segmentation  
-│   ├── report_part1.pdf                  # Summary of approach and findings  
-│   └── visuals/                          # Generated plots/figures  
+Part1_Structured_Data_ML_Challenge/  
+├── Structured_Data_ML_Challenge.ipynb # Jupyter notebook with EDA, modeling, and segmentation  
+├── report_part1.pdf                  # Summary of approach and findings  
+└── visuals/                          # Generated plots/figures  
 │  
 ├── Part2_LLM_Vector_DB_Challenge/  
 │   ├── review_processing_pipeline.py     # Document processing & embeddings  
@@ -16,8 +16,7 @@ Repository Structure
 │  
 ├── Part3_MLOps_Design_Exercise/  
 │   ├── mlops_design_document.pdf         # Detailed architecture and strategies  
-│   ├── architecture_diagram.png          # System component diagram  
-│   └── monitoring_dashboard_mockup.png   # Example dashboard  
+│   └── monitoring_dashboard_mockup.png   # Example dashboard within the report
 │  
 └── README.md  
 
