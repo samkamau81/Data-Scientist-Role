@@ -1,108 +1,73 @@
-import dash
-from dash import dcc, html
-from dash.dependencies import Input, Output
+# Import libraries
+import matplotlib.pyplot as plt
 import plotly.express as px
-import plotly.graph_objects as go
-from datetime import datetime
-import pandas as pd
-import numpy as np
 
-def create_sentiment_dashboard(df):
-    """
-    Create a Dash app for visualizing sentiment trends.
-    
-    Args:
-        df: DataFrame containing review data
-    
-    Returns:
-        dash.Dash: Dash app
-    """
-    # Prepare data
-    df['date'] = pd.to_datetime(df['date'])
-    df['month'] = df['date'].dt.to_period('M').astype(str)
-    
-    # Calculate sentiment counts by month and category
-    sentiment_by_month = df.groupby(['month', 'sentiment']).size().unstack(fill_value=0)
-    sentiment_by_category = df.groupby(['category', 'sentiment']).size().unstack(fill_value=0)
-    
-    # Calculate average rating by month and category
-    rating_by_month = df.groupby('month')['rating'].mean().reset_index()
-    rating_by_category = df.groupby('category')['rating'].mean().reset_index()
-    
-    # Create Dash app
-    app = dash.Dash(__name__)
-    
-    app.layout = html.Div([
-        html.H1("Product Review Sentiment Analysis Dashboard"),
-        
-        html.Div([
-            html.Div([
-                html.H3("Filter by Category"),
-                dcc.Dropdown(
-                    id='category-filter',
-                    options=[{'label': category, 'value': category} for category in df['category'].unique()],
-                    value='All',
-                    clearable=False
-                ),
-            ], style={'width': '30%', 'display': 'inline-block'}),
-            
-            html.Div([
-                html.H3("Filter by Date Range"),
-                dcc.DatePickerRange(
-                    id='date-range',
-                    min_date_allowed=df['date'].min().date(),
-                    max_date_allowed=df['date'].max().date(),
-                    start_date=df['date'].min().date(),
-                    end_date=df['date'].max().date()
-                ),
-            ], style={'width': '70%', 'display': 'inline-block'})
-        ]),
-        
-        html.Div([
-            html.Div([
-                html.H3("Sentiment Trends Over Time"),
-                dcc.Graph(id='sentiment-time-trend')
-            ], style={'width': '50%', 'display': 'inline-block'}),
-            
-            html.Div([
-                html.H3("Sentiment Distribution by Category"),
-                dcc.Graph(id='sentiment-category-dist')
-            ], style={'width': '50%', 'display': 'inline-block'})
-        ]),
-        
-        html.Div([
-            html.Div([
-                html.H3("Average Rating Over Time"),
-                dcc.Graph(id='rating-time-trend')
-            ], style={'width': '50%', 'display': 'inline-block'}),
-            
-            html.Div([
-                html.H3("Top Features by Sentiment"),
-                dcc.Graph(id='feature-sentiment')
-            ], style={'width': '50%', 'display': 'inline-block'})
-        ]),
-        
-        html.Div([
-            html.H3("Product Sentiment Comparison"),
-            dcc.Graph(id='product-comparison')
-        ])
-    ])
-    
-    @app.callback(
-        [Output('sentiment-time-trend', 'figure'),
-         Output('sentiment-category-dist', 'figure'),
-         Output('rating-time-trend', 'figure'),
-         Output('feature-sentiment', 'figure'),
-         Output('product-comparison', 'figure')],
-        [Input('category-filter', 'value'),
-         Input('date-range', 'start_date'),
-         Input('date-range', 'end_date')]
-    )
-    def update_graphs(selected_category, start_date, end_date):
-        # Filter data
-        filtered_df = df.copy()
-        
-        if selected_category != 'All':
-            filtered_df = filtered_df[filtered_df['category'] == selected_category]
-        
-        filtered_
+# Load your data
+df = pd.read_csv('/content/product_reviews.csv')
+
+# If your sentiment predictions are not yet added, use your SentimentClassifier to predict:
+# sentiment_model = SentimentClassifier(model_type="your_best_model")
+# sentiment_model.train(df)
+# df['predicted_sentiment'] = sentiment_model.predict(df['review_text'].tolist())
+
+# ----- Prepare for Visualization -----
+
+# Convert your 'date' column to datetime
+df['date'] = pd.to_datetime(df['date'])  # change 'review_date' if your date column has a different name
+
+# Map sentiments to numerical scale for easier plotting if needed
+sentiment_mapping = {'negative': -1, 'neutral': 0, 'positive': 1}
+df['sentiment_score'] = df['sentiment'].map(sentiment_mapping)
+
+# Group by month
+df['month'] = df['date'].dt.to_period('M').astype(str)
+
+# Group by category
+if 'category' not in df.columns:
+    raise ValueError("Your dataframe must have a 'product_category' column.")
+
+# ----- Visualization Part -----
+
+# 1. Sentiment Trends Over Time
+plt.figure(figsize=(14,6))
+monthly_sentiment = df.groupby('month')['sentiment_score'].mean()
+sns.lineplot(x=monthly_sentiment.index, y=monthly_sentiment.values, marker='o')
+plt.xticks(rotation=45)
+plt.title('Average Sentiment Over Time')
+plt.xlabel('Month')
+plt.ylabel('Average Sentiment Score')
+plt.grid(True)
+plt.show()
+
+# 2. Sentiment Distribution Across Categories
+plt.figure(figsize=(14,8))
+category_sentiment = df.groupby('category')['sentiment_score'].mean().sort_values()
+sns.barplot(x=category_sentiment.values, y=category_sentiment.index, palette='coolwarm')
+plt.title('Average Sentiment Score Across Product Categories')
+plt.xlabel('Average Sentiment Score')
+plt.ylabel('Product Category')
+plt.grid(True)
+plt.show()
+
+# 3. Number of Reviews per Sentiment per Category (Stacked bar)
+sentiment_counts = df.groupby(['category', 'sentiment']).size().unstack().fillna(0)
+
+sentiment_counts.plot(kind='bar', stacked=True, figsize=(16,8), colormap='viridis')
+plt.title('Sentiment Distribution per Product Category')
+plt.xlabel('Product Category')
+plt.ylabel('Number of Reviews')
+plt.xticks(rotation=45)
+plt.legend(title='Sentiment')
+plt.tight_layout()
+plt.show()
+
+# 4. Interactive Dashboard with Plotly (Optional, very beautiful)
+fig = px.scatter(
+    df, 
+    x='date', 
+    y='sentiment_score', 
+    color='sentiment',
+    hover_data=['category', 'review_text'],
+    title="Sentiment Trends Over Time (Interactive)"
+)
+fig.show()
