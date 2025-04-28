@@ -25,7 +25,7 @@ Setup Instructions
 Part 1: Structured Data & ML Challenge
 Requirements: Python 3.8+, pandas, scikit-learn, matplotlib, seaborn
 
-Run: Execute retail_sales_analysis.ipynb directly in Jupyter.
+Run: Execute Structured_Data_ML_Challenge.ipynb directly in Jupyter.
 
 Part 2: LLM & Vector Database Challenge
 Virtual Environment (Recommended):
